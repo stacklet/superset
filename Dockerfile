@@ -283,3 +283,12 @@ USER root
 RUN uv pip install .[duckdb]
 USER superset
 CMD ["/app/docker/entrypoints/docker-ci.sh"]
+
+######################################################################
+# Stacklet image - based on lean
+######################################################################
+FROM lean AS stacklet
+USER root
+RUN --mount=type=cache,target=${SUPERSET_HOME}/.cache/uv \
+    uv pip install .[postgres,fastmcp]
+USER superset
