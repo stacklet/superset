@@ -1,0 +1,113 @@
+# Build the Dockerfile `stacklet` target and publish it. Registry and role
+# come from repo Actions variables.
+name: Stacklet Image
+
+on:
+  push:
+    branches:
+      - stacklet/integration
+  pull_request:
+    branches:
+      - stacklet/integration
+
+permissions: {}
+
+jobs:
+  build-and-publish:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    # Publish only where configured; for PRs, same-repo head into integration.
+    if: >-
+      vars.PUBLISH_ROLE_ARN != '' &&
+      (github.event_name != 'pull_request' ||
+       (github.event.pull_request.head.repo.full_name == github.repository &&
+        github.base_ref == 'stacklet/integration'))
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Resolve source ref
+        id: src
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_HEAD_REF: ${{ github.head_ref }}
+        run: |
+          if [ -n "$PR_HEAD_SHA" ]; then
+            echo "sha=$PR_HEAD_SHA" >> "$GITHUB_OUTPUT"
+            echo "ref=$PR_HEAD_REF" >> "$GITHUB_OUTPUT"
+          else
+            echo "sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+            echo "ref=$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout source at exact ref
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: ${{ steps.src.outputs.sha }}
+          persist-credentials: false
+
+      - name: Resolve image metadata
+        id: meta
+        env:
+          SHA: ${{ steps.src.outputs.sha }}
+          REGISTRY: ${{ vars.ECR_REGISTRY }}
+          REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+        run: |
+          version="$(jq -r .version superset-frontend/package.json)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=${REGISTRY}/${REPOSITORY}:${SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
+        with:
+          role-to-assume: ${{ vars.PUBLISH_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Log in to registry
+        env:
+          REGION: ${{ vars.AWS_REGION }}
+          REGISTRY: ${{ vars.ECR_REGISTRY }}
+        run: |
+          aws ecr get-login-password --region "$REGION" \
+            | docker login --username AWS --password-stdin "$REGISTRY"
+
+      # Immutable registry: skip if the SHA tag already exists.
+      - name: Check whether image already exists
+        id: exists
+        env:
+          SHA: ${{ steps.src.outputs.sha }}
+          REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+          REGION: ${{ vars.AWS_REGION }}
+        run: |
+          if aws ecr describe-images \
+              --repository-name "$REPOSITORY" \
+              --image-ids imageTag="$SHA" \
+              --region "$REGION" >/dev/null 2>&1; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Image for ${SHA} already exists; skipping build and push."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Docker Buildx
+        if: steps.exists.outputs.skip == 'false'
+        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
+
+      - name: Build and push Stacklet image
+        if: steps.exists.outputs.skip == 'false'
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+        with:
+          context: .
+          target: stacklet
+          platforms: linux/amd64
+          push: true
+          provenance: false
+          tags: ${{ steps.meta.outputs.tag }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/stacklet/superset
+            org.opencontainers.image.revision=${{ steps.src.outputs.sha }}
+            io.stacklet.superset.upstream_version=${{ steps.meta.outputs.version }}
+            io.stacklet.superset.stacklet_ref=${{ steps.src.outputs.ref }}
+          # Reuse BuildKit layers across runs (cold builds are slow).
+          cache-from: type=gha,scope=stacklet-superset
+          cache-to: type=gha,mode=max,scope=stacklet-superset
