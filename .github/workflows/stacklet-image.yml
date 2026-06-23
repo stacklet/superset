@@ -53,7 +53,8 @@ jobs:
           REGISTRY: ${{ vars.ECR_REGISTRY }}
           REPOSITORY: ${{ vars.ECR_REPOSITORY }}
         run: |
-          version="$(jq -r .version superset-frontend/package.json)"
+          version="$(git describe --tags --match '[0-9]*.[0-9]*.[0-9]*' --abbrev=0 2>/dev/null \
+            || jq -r .version superset-frontend/package.json)"
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "tag=${REGISTRY}/${REPOSITORY}:${SHA}" >> "$GITHUB_OUTPUT"
 
@@ -107,6 +108,9 @@ jobs:
           push: true
           provenance: false
           tags: ${{ steps.meta.outputs.tag }}
+          build-args: |
+            SUPERSET_VERSION=${{ steps.meta.outputs.version }}
+            SUPERSET_GIT_SHA=${{ steps.src.outputs.sha }}
           labels: |
             org.opencontainers.image.source=https://github.com/stacklet/superset
             org.opencontainers.image.revision=${{ steps.src.outputs.sha }}

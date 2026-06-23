@@ -291,6 +291,13 @@ CMD ["/app/docker/entrypoints/docker-ci.sh"]
 ######################################################################
 FROM lean AS stacklet
 USER root
+ARG SUPERSET_VERSION=""
+ARG SUPERSET_GIT_SHA=""
 RUN --mount=type=cache,target=${SUPERSET_HOME}/.cache/uv \
     uv pip install .[postgres,fastmcp]
+RUN if [ -n "${SUPERSET_VERSION}" ]; then \
+      printf '{"version":"%s","GIT_SHA":"%s"}' \
+        "${SUPERSET_VERSION}" "${SUPERSET_GIT_SHA}" \
+        > superset/static/version_info.json; \
+    fi
 USER superset
