@@ -45,7 +45,6 @@ jobs:
         with:
           ref: ${{ steps.src.outputs.sha }}
           persist-credentials: false
-          fetch-depth: 0
 
       - name: Resolve image metadata
         id: meta
@@ -54,8 +53,7 @@ jobs:
           REGISTRY: ${{ vars.ECR_REGISTRY }}
           REPOSITORY: ${{ vars.ECR_REPOSITORY }}
         run: |
-          version="$(git describe --tags --match '[0-9]*.[0-9]*.[0-9]*' --abbrev=0 2>/dev/null \
-            || jq -r .version superset-frontend/package.json)"
+          version="$(jq -r .version superset-frontend/package.json)-stacklet"
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "tag=${REGISTRY}/${REPOSITORY}:${SHA}" >> "$GITHUB_OUTPUT"
 
