@@ -45,6 +45,7 @@ jobs:
         with:
           ref: ${{ steps.src.outputs.sha }}
           persist-credentials: false
+          fetch-depth: 0
 
       - name: Resolve image metadata
         id: meta
