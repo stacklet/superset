@@ -1,14 +1,13 @@
 # Sync version tags from apache/superset to this fork so git describe can
 # resolve the upstream version without manual intervention.
-name: Sync upstream tags
+name: Stacklet sync upstream tags
 
 on:
   schedule:
     - cron: '0 6 * * *'
   workflow_dispatch:
 
-permissions:
-  contents: write
+permissions: {}
 
 jobs:
   sync-tags:
@@ -18,9 +17,13 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
+          # GITHUB_TOKEN cannot push tags referencing commits that contain
+          # workflow files. Requires a classic PAT with repo+workflow scopes.
+          token: ${{ secrets.TAGS_SYNC_PAT }}
 
       - name: Fetch and push upstream version tags
         run: |
           git remote add upstream https://github.com/apache/superset.git
-          git fetch upstream 'refs/tags/[0-9]*.[0-9]*.[0-9]*:refs/tags/[0-9]*.[0-9]*.[0-9]*'
-          git push origin --tags
+          git fetch upstream --tags
+          git tag -l '[0-9]*.[0-9]*.[0-9]*' \
+            | xargs -r git push origin --force-with-lease
