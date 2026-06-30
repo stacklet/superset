@@ -291,8 +291,9 @@ FROM lean AS stacklet
 USER root
 ARG SUPERSET_VERSION=""
 ARG SUPERSET_GIT_SHA=""
+COPY requirements/stacklet.txt requirements/
 RUN --mount=type=cache,target=${SUPERSET_HOME}/.cache/uv \
-    uv pip install .[postgres,fastmcp]
+    /app/docker/pip-install.sh -r requirements/stacklet.txt
 RUN if [ -n "${SUPERSET_VERSION}" ]; then \
       printf '{"version":"%s","GIT_SHA":"%s"}' \
         "${SUPERSET_VERSION}" "${SUPERSET_GIT_SHA}" \

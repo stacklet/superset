@@ -1,0 +1,4 @@
+# Additional constraints for the Stacklet image extras.
+# Compiled via ./scripts/uv-pip-compile.sh
+-e .[postgres,fastmcp]
+boto3>=1.0.0,<2
