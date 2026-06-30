@@ -1,0 +1,5 @@
+# Additional constraints for the Stacklet image extras.
+# Compiled via ./scripts/uv-pip-compile.sh
+-e .[postgres,fastmcp]
+boto3>=1.0.0,<2
+sentry-sdk[flask,celery,sqlalchemy]>=2.0.0,<3
