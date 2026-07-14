@@ -299,6 +299,7 @@ greenlet==3.1.1
     # via
     #   -c requirements/base-constraint.txt
     #   apache-superset
+    #   playwright
     #   shillelagh
     #   sqlalchemy
 griffelib==2.1.0
@@ -528,6 +529,8 @@ platformdirs==4.3.8
     #   -c requirements/base-constraint.txt
     #   fastmcp-slim
     #   requests-cache
+playwright==1.61.0
+    # via -r requirements/stacklet.in
 ply==3.11
     # via
     #   -c requirements/base-constraint.txt
@@ -582,6 +585,8 @@ pydantic-settings==2.14.2
     # via
     #   fastmcp-slim
     #   mcp
+pyee==13.0.1
+    # via playwright
 pygeohash==3.2.2
     # via
     #   -c requirements/base-constraint.txt
@@ -791,6 +796,7 @@ typing-extensions==4.15.0
     #   py-key-value-aio
     #   pydantic
     #   pydantic-core
+    #   pyee
     #   pyopenssl
     #   referencing
     #   selenium

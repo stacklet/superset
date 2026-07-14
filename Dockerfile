@@ -289,11 +289,19 @@ CMD ["/app/docker/entrypoints/docker-ci.sh"]
 ######################################################################
 FROM lean AS stacklet
 USER root
+
 ARG SUPERSET_VERSION=""
 ARG SUPERSET_GIT_SHA=""
+
 COPY requirements/stacklet.txt requirements/
+
 RUN --mount=type=cache,target=${SUPERSET_HOME}/.cache/uv \
     /app/docker/pip-install.sh -r requirements/stacklet.txt
+RUN --mount=type=cache,target=${SUPERSET_HOME}/.cache/uv \
+    . /app/.venv/bin/activate && \
+    playwright install-deps && \
+    playwright install chromium
+
 RUN if [ -n "${SUPERSET_VERSION}" ]; then \
       printf '{"version":"%s","GIT_SHA":"%s"}' \
         "${SUPERSET_VERSION}" "${SUPERSET_GIT_SHA}" \
