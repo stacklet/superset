@@ -297,8 +297,7 @@ COPY requirements/stacklet.txt requirements/
 
 RUN --mount=type=cache,target=${SUPERSET_HOME}/.cache/uv \
     /app/docker/pip-install.sh -r requirements/stacklet.txt
-RUN --mount=type=cache,target=${SUPERSET_HOME}/.cache/uv \
-    . /app/.venv/bin/activate && \
+RUN . /app/.venv/bin/activate && \
     playwright install-deps && \
     playwright install chromium
 
