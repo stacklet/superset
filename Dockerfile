@@ -60,12 +60,22 @@ RUN mkdir -p /app/superset/static/assets \
 # ideally we'd COPY only their package.json. Here npm ci will be cached as long
 # as the full content of these folders don't change, yielding a decent cache reuse rate.
 # Note that it's not possible to selectively COPY or mount using blobs.
+# The @stacklet scope resolves against Stacklet's private CodeArtifact
+# repository (see superset-frontend/.npmrc); CI passes a short-lived token
+# via the codeartifact_token BuildKit secret. The token is written to the
+# root user's npmrc only for the duration of this layer.
 RUN --mount=type=bind,source=./superset-frontend/package.json,target=./package.json \
     --mount=type=bind,source=./superset-frontend/package-lock.json,target=./package-lock.json \
+    --mount=type=bind,source=./superset-frontend/.npmrc,target=./.npmrc \
+    --mount=type=secret,id=codeartifact_token \
     --mount=type=cache,target=/root/.cache \
     --mount=type=cache,target=/root/.npm \
     if [ "${DEV_MODE}" = "false" ]; then \
+        if [ -s /run/secrets/codeartifact_token ]; then \
+            echo "//stacklet-653993915282.d.codeartifact.us-east-1.amazonaws.com/npm/stacklet.client.ui/:_authToken=$(cat /run/secrets/codeartifact_token)" > /root/.npmrc; \
+        fi; \
         npm ci; \
+        rm -f /root/.npmrc; \
     else \
         echo "Skipping 'npm ci' in dev mode"; \
     fi

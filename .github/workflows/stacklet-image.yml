@@ -89,6 +89,19 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # The frontend build resolves @stacklet/ui from Stacklet's private
+      # CodeArtifact npm repository; mint a short-lived token and hand it to
+      # the Docker build as a BuildKit secret (consumed by the npm ci layer).
+      - name: Mint CodeArtifact token
+        if: steps.exists.outputs.skip == 'false'
+        run: |
+          aws codeartifact get-authorization-token \
+            --domain stacklet \
+            --domain-owner 653993915282 \
+            --region us-east-1 \
+            --query authorizationToken \
+            --output text > /tmp/codeartifact-token
+
       - name: Set up QEMU
         if: steps.exists.outputs.skip == 'false'
         uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
@@ -110,6 +123,8 @@ jobs:
           build-args: |
             SUPERSET_VERSION=${{ steps.meta.outputs.version }}
             SUPERSET_GIT_SHA=${{ steps.src.outputs.sha }}
+          secret-files: |
+            codeartifact_token=/tmp/codeartifact-token
           labels: |
             org.opencontainers.image.source=https://github.com/stacklet/superset
             org.opencontainers.image.revision=${{ steps.src.outputs.sha }}
