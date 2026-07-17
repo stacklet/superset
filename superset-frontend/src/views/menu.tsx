@@ -29,7 +29,7 @@ import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
 import createCache from '@emotion/cache';
 import { ThemeProvider } from '@apache-superset/core/theme';
 import { theme } from '@apache-superset/core/theme';
-import Menu from 'src/features/home/Menu';
+import StackletMenuApp from 'src/stacklet/StackletMenuApp';
 import getBootstrapData from 'src/utils/getBootstrapData';
 import { setupStore } from './store';
 import querystring from 'query-string';
@@ -57,7 +57,7 @@ const app = (
                 querystring.stringify(object, { encode: false }),
             }}
           >
-            <Menu data={menu} />
+            <StackletMenuApp data={menu} />
           </QueryParamProvider>
         </BrowserRouter>
       </Provider>
