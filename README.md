@@ -17,6 +17,51 @@ specific language governing permissions and limitations
 under the License.
 -->
 
+# Stacklet fork — local development
+
+This is Stacklet's fork of Apache Superset (branded **AssetDB**). It replaces
+the upstream navigation with the Stacklet design-system sidebar, consumed
+from the private `@stacklet/ui` package. To run it locally you need Docker,
+Node 22, and AWS credentials with access to the `stacklet.client.ui`
+CodeArtifact repository.
+
+**1. Install frontend dependencies**
+
+```bash
+cd superset-frontend
+npm run auth        # logs npm into CodeArtifact; tokens expire after ~12h
+npx -y npm@10 ci    # use npm 10 — the lockfile does not resolve under npm 11
+```
+
+If installs start failing with 401/403 on `@stacklet/*` packages, the
+CodeArtifact token has expired — rerun `npm run auth`.
+
+**2. Start the backend** (from the repo root)
+
+```bash
+echo "SUPERSET_LOAD_EXAMPLES=no" >> docker/.env-local   # optional: much faster first start
+TAG=6.1.0rc3 docker compose -f docker-compose-image-tag.yml up -d db redis superset superset-init
+```
+
+Use the `TAG` matching the upstream release this fork is based on. Once
+`superset-init` finishes, the backend answers on http://localhost:8088
+(login `admin` / `admin`).
+
+**3. Start the frontend dev server**
+
+```bash
+cd superset-frontend
+npm run dev-server -- --port 9001
+```
+
+Then open http://localhost:9001. The dev server proxies API calls to the
+backend on :8088 and hot-reloads frontend changes. Port 9001 is a
+suggestion — the default 9000 is often held by a Docker port-forward.
+
+The Stacklet-specific frontend code lives in `superset-frontend/src/stacklet/`.
+
+---
+
 # Superset
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/license/apache-2-0)
