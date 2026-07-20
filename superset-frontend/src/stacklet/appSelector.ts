@@ -34,13 +34,12 @@ export interface StackletAppOption {
  * Sibling Stacklet apps shown in the app switcher, hardcoded to the shared
  * dev platform for the time being.
  *
- * TODO(ENG-8179 follow-up): replace with per-deployment URLs once the
- * delivery mechanism is agreed with the backend team. The sibling apps read
- * an equivalent URL map from their environment at runtime — sinistral from
- * a deploy-provisioned /config/application.json (with a committed
+ * TODO(ENG-8219): replace with per-deployment URLs once the delivery
+ * mechanism is provided by the backend. The sibling apps read an equivalent
+ * URL map from their environment at runtime — sinistral from a
+ * deploy-provisioned /config/application.json (with a committed
  * application.local.json default for dev servers), console from the
- * platform API's GraphQL UrlConfig — and this deployment should follow the
- * same pattern.
+ * platform API's GraphQL UrlConfig.
  */
 const MOCKED_SIBLING_APPS: StackletAppOption[] = [
   { label: 'Console', href: 'https://console.dev.stacklet.dev', isBeta: false },
