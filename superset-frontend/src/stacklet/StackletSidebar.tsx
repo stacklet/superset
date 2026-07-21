@@ -16,10 +16,18 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { UNSAFE_PortalProvider as PortalProvider } from 'react-aria';
 import { Icons } from '@superset-ui/core/components';
 import { t } from '@apache-superset/core/translation';
+import { ThemeMode } from '@apache-superset/core/theme';
 import { Sidebar } from '@stacklet/ui/v2/Sidebar';
 import { Button } from '@stacklet/ui/v2/Button';
 import { UserMenu as StackletUserMenu } from '@stacklet/ui/v2/UserMenu';
@@ -52,6 +60,53 @@ const UserMenu = StackletUserMenu as unknown as React.FC<{
 
 const COLLAPSED_STORAGE_KEY = 'stacklet:sidebar-collapsed';
 const SECTION_STORAGE_PREFIX = 'stacklet:sidebar-section-expanded:';
+// Superset's ThemeController persists the chosen mode here (ThemeController.ts).
+const THEME_MODE_STORAGE_KEY = 'superset-theme-mode';
+const DARK_MEDIA_QUERY = '(prefers-color-scheme: dark)';
+
+function readStoredThemeMode(): ThemeMode | undefined {
+  try {
+    const stored = localStorage.getItem(THEME_MODE_STORAGE_KEY);
+    return (stored as ThemeMode | null | undefined) ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Resolves the value for the scope's `data-theme` attribute, which drives the
+ * @stacklet/ui dark palette (its scoped stylesheet keys dark tokens off
+ * `.stacklet-ui-scope[data-theme="dark"]`). Superset does not stamp the theme
+ * onto the DOM, so we mirror it here.
+ *
+ * `themeMode` is supplied by the SPA shell from the theme context (reactive to
+ * in-app switching); the Flask-AppBuilder entrypoint has no such context and
+ * passes nothing, so we fall back to the persisted mode. The system preference
+ * is resolved — and subscribed to — via `matchMedia`, matching
+ * ThemeController.getSystemPreferredMode.
+ */
+function useScopeTheme(themeMode?: ThemeMode): 'light' | 'dark' {
+  const effectiveMode = themeMode ?? readStoredThemeMode() ?? ThemeMode.DEFAULT;
+  const isSystem = effectiveMode === ThemeMode.SYSTEM;
+  const [systemDark, setSystemDark] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      window.matchMedia(DARK_MEDIA_QUERY).matches,
+  );
+  useEffect(() => {
+    if (!isSystem) return undefined;
+    const mediaQuery = window.matchMedia(DARK_MEDIA_QUERY);
+    const onChange = (event: MediaQueryListEvent) =>
+      setSystemDark(event.matches);
+    setSystemDark(mediaQuery.matches);
+    mediaQuery.addEventListener('change', onChange);
+    return () => mediaQuery.removeEventListener('change', onChange);
+  }, [isSystem]);
+
+  if (effectiveMode === ThemeMode.DARK) return 'dark';
+  if (isSystem) return systemDark ? 'dark' : 'light';
+  return 'light';
+}
 
 function readSectionExpanded(sectionId: string): boolean {
   try {
@@ -126,7 +181,7 @@ function useCurrentUserMenu(
         onPress={() => window.location.assign(navbarRight.user_info_url)}
         variant="tertiary"
       >
-        <Icons.InfoCircleOutlined className="size-md" /> {t('Info')}
+        <Icons.InfoCircleOutlined className="size-md" /> {t('User info')}
       </Button>
       {themeControl}
       {navbarRight.version_string ? (
@@ -152,6 +207,12 @@ export interface StackletSidebarProps {
    * menu entrypoint, which has no theme context.
    */
   themeControl?: ReactNode;
+  /**
+   * Current Superset theme mode, used to mirror the light/dark palette onto
+   * the sidebar. Supplied by the SPA shell from the theme context; when
+   * omitted (menu entrypoint) the persisted mode is used instead.
+   */
+  themeMode?: ThemeMode;
 }
 
 /**
@@ -168,7 +229,9 @@ export default function StackletSidebar({
   collapsed,
   onToggleCollapsed,
   themeControl,
+  themeMode,
 }: StackletSidebarProps) {
+  const scopeTheme = useScopeTheme(themeMode);
   const scopeRef = useRef<HTMLDivElement>(null);
   const getPortalContainer = useCallback(() => scopeRef.current, []);
   const { user } = getBootstrapData();
@@ -197,7 +260,7 @@ export default function StackletSidebar({
   );
 
   return (
-    <div className="stacklet-ui-scope" ref={scopeRef}>
+    <div className="stacklet-ui-scope" data-theme={scopeTheme} ref={scopeRef}>
       <PortalProvider getContainer={getPortalContainer}>
         <Sidebar
           appSelectorOptions={appSelectorOptions}

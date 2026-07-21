@@ -23,6 +23,7 @@ import { css } from '@apache-superset/core/theme';
 import { useUiConfig } from 'src/components/UiConfigContext';
 import { URL_PARAMS } from 'src/constants';
 import { getUrlParam } from 'src/utils/urlUtils';
+import { useThemeContext } from 'src/theme/ThemeProvider';
 import type { MenuData } from 'src/types/bootstrapTypes';
 import StackletSidebar, {
   isAnonymousUser,
@@ -52,6 +53,7 @@ export default function StackletAppShell({
   const uiConfig = useUiConfig();
   const history = useHistory();
   const location = useLocation();
+  const { themeMode } = useThemeContext();
   const [collapsed, toggleCollapsed] = useSidebarCollapsed();
 
   const navigate = useCallback(
@@ -106,6 +108,7 @@ export default function StackletAppShell({
           pathname={location.pathname}
           search={location.search}
           themeControl={<ThemeModeControl />}
+          themeMode={themeMode}
         />
       </div>
       <div
