@@ -23,6 +23,7 @@
 export const Sidebar = () => null;
 export const UserMenu = () => null;
 export const AppSelector = () => null;
+export const Button = () => null;
 
 // @stacklet/ui/icons (see src/stacklet/menuItems.ts)
 const MockIcon = () => null;

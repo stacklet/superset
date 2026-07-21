@@ -28,6 +28,7 @@ import StackletSidebar, {
   isAnonymousUser,
   useSidebarCollapsed,
 } from './StackletSidebar';
+import ThemeModeControl from './ThemeModeControl';
 
 interface StackletAppShellProps {
   data: MenuData;
@@ -104,6 +105,7 @@ export default function StackletAppShell({
           onToggleCollapsed={toggleCollapsed}
           pathname={location.pathname}
           search={location.search}
+          themeControl={<ThemeModeControl />}
         />
       </div>
       <div

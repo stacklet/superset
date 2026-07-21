@@ -16,9 +16,12 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
 import { UNSAFE_PortalProvider as PortalProvider } from 'react-aria';
+import { Icons } from '@superset-ui/core/components';
+import { t } from '@apache-superset/core/translation';
 import { Sidebar } from '@stacklet/ui/v2/Sidebar';
+import { Button } from '@stacklet/ui/v2/Button';
 import { UserMenu as StackletUserMenu } from '@stacklet/ui/v2/UserMenu';
 import '@fontsource-variable/dm-sans';
 
@@ -99,7 +102,11 @@ export function isAnonymousUser(data: MenuData): boolean {
   return Boolean(data.navbar_right?.user_is_anonymous);
 }
 
-function useCurrentUserMenu(data: MenuData, collapsed: boolean) {
+function useCurrentUserMenu(
+  data: MenuData,
+  collapsed: boolean,
+  themeControl?: ReactNode,
+) {
   const { navbar_right: navbarRight } = data;
   const { user } = getBootstrapData();
   const fullName =
@@ -113,6 +120,15 @@ function useCurrentUserMenu(data: MenuData, collapsed: boolean) {
       onLogout={() => window.location.assign(navbarRight.user_logout_url)}
       username={username}
     >
+      {/* The "Info" link and theme switcher carry over from the upstream
+          navbar's user dropdown; Log Out is rendered by UserMenu itself. */}
+      <Button
+        onPress={() => window.location.assign(navbarRight.user_info_url)}
+        variant="tertiary"
+      >
+        <Icons.InfoCircleOutlined className="size-md" /> {t('Info')}
+      </Button>
+      {themeControl}
       {navbarRight.version_string ? (
         <div className="text-label-small px-xl py-xs text-center text-text-secondary">
           Superset {navbarRight.version_string}
@@ -130,6 +146,12 @@ export interface StackletSidebarProps {
   navigate: (url: string) => void;
   collapsed: boolean;
   onToggleCollapsed: () => void;
+  /**
+   * Theme switcher shown in the user menu. Supplied only by the SPA shell,
+   * which mounts under `SupersetThemeProvider`; omitted by the Flask-AppBuilder
+   * menu entrypoint, which has no theme context.
+   */
+  themeControl?: ReactNode;
 }
 
 /**
@@ -145,6 +167,7 @@ export default function StackletSidebar({
   navigate,
   collapsed,
   onToggleCollapsed,
+  themeControl,
 }: StackletSidebarProps) {
   const scopeRef = useRef<HTMLDivElement>(null);
   const getPortalContainer = useCallback(() => scopeRef.current, []);
@@ -165,7 +188,7 @@ export default function StackletSidebar({
     [data, user],
   );
   const appSelectorOptions = useMemo(() => getAppSelectorOptions(), []);
-  const signInMenu = useCurrentUserMenu(data, collapsed);
+  const signInMenu = useCurrentUserMenu(data, collapsed, themeControl);
   // See resolveActiveNavToken: a virtual token stands in for the pathname so
   // exactly one nav item is highlighted, query-aware for filtered presets.
   const activeToken = useMemo(
