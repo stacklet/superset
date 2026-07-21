@@ -32,7 +32,6 @@ test('builds entries from the platform-injected stacklet.urls', () => {
       urls: {
         console: 'https://console.acme.stacklet.io',
         sinistral: 'https://sinistral.acme.stacklet.io',
-        redash: 'https://redash.acme.stacklet.io',
         superset: 'https://superset.acme.stacklet.io',
       },
     },
