@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import getBootstrapData from 'src/utils/getBootstrapData';
 
 /**
  * How this Superset deployment is branded in the Stacklet platform's app
@@ -31,28 +32,42 @@ export interface StackletAppOption {
 }
 
 /**
- * Sibling Stacklet apps shown in the app switcher, hardcoded to the shared
- * dev platform for the time being.
- *
- * TODO(ENG-8219): replace with per-deployment URLs once the delivery
- * mechanism is provided by the backend. The sibling apps read an equivalent
- * URL map from their environment at runtime — sinistral from a
- * deploy-provisioned /config/application.json (with a committed
- * application.local.json default for dev servers), console from the
- * platform API's GraphQL UrlConfig.
+ * Per-deployment app URLs injected into the common bootstrap payload by the
+ * platform's superset_config.py (`COMMON_BOOTSTRAP_OVERRIDES_FUNC`, see
+ * stacklet/platform#4166): the platform's shared URL map with keys such as
+ * `console`, `sinistral`, `redash`, `jun0` and `superset`.
  */
-const MOCKED_SIBLING_APPS: StackletAppOption[] = [
-  { label: 'Console', href: 'https://console.dev.stacklet.dev', isBeta: false },
-  { label: 'IaC', href: 'https://sinistral.dev.stacklet.dev', isBeta: false },
-];
+interface StackletBootstrapExtras {
+  stacklet?: {
+    urls?: Partial<Record<string, string>>;
+  };
+}
+
+/**
+ * Fallback for local development, where the backend is the stock upstream
+ * Superset image and injects no `stacklet.urls` into the bootstrap payload:
+ * point the switcher at the shared dev platform.
+ */
+const DEV_FALLBACK_URLS: Partial<Record<string, string>> = {
+  console: 'https://console.dev.stacklet.dev',
+  sinistral: 'https://sinistral.dev.stacklet.dev',
+};
 
 /**
  * Builds the app switcher entries for the Stacklet sidebar. Superset itself
- * (branded AssetDB) is always present and selected.
+ * (branded AssetDB) is always present and selected; siblings appear only
+ * when their URL is configured.
  */
 export function getAppSelectorOptions(): StackletAppOption[] {
+  const common = getBootstrapData().common as StackletBootstrapExtras;
+  const urls = common?.stacklet?.urls ?? DEV_FALLBACK_URLS;
   return [
     { label: SUPERSET_APP_NAME, href: '', isBeta: false },
-    ...MOCKED_SIBLING_APPS,
+    ...(urls.console
+      ? [{ label: 'Console', href: urls.console, isBeta: false }]
+      : []),
+    ...(urls.sinistral
+      ? [{ label: 'IaC', href: urls.sinistral, isBeta: false }]
+      : []),
   ];
 }
