@@ -42,6 +42,12 @@ ARG NPM_BUILD_CMD="build"
 # Install system dependencies required for node-gyp
 RUN /app/docker/apt-install.sh build-essential python3 zstd
 
+# @stacklet/ui 2.14.0 ships a `preinstall: pnpm dlx only-allow pnpm` guard
+# that npm executes during `npm ci`; it needs a pnpm binary on PATH (and
+# passes when launched through pnpm dlx). Drop this once the fork consumes a
+# @stacklet/ui release whose preinstall no longer invokes pnpm.
+RUN npm install -g pnpm@10
+
 # Define environment variables for frontend build
 ENV BUILD_CMD=${NPM_BUILD_CMD} \
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
