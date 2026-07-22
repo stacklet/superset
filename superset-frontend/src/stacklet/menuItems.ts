@@ -20,6 +20,7 @@
 // dedicated icons entry point (which avoids pulling the full @stacklet/ui
 // bundle into Superset).
 import {
+  BellSimpleIcon,
   CardsIcon,
   ChartLineIcon,
   ClockCounterClockwiseIcon,
@@ -49,8 +50,8 @@ import type {
  *   Dashboards  Favourite · My Dashboards · All
  *   Charts      Favourite · My Charts · All
  *   Data        My Datasets · All
- *   Settings    Database Connections · Action Log · CSS Templates ·
- *               Annotation Layers
+ *   Settings    Database Connections · Notifications · Action Log ·
+ *               CSS Templates · Annotation Layers
  *
  * The sections are rendered by V2Sidebar's `grouped` variant (small group
  * labels with flat, icon-carrying items); per the design only the Settings
@@ -194,6 +195,15 @@ const SECTIONS: SidebarSectionSpec[] = [
         label: 'Database Connections',
         Icon: PlugsConnectedIcon,
         requiresUrl: '/databaseview/list/',
+      },
+      {
+        id: 'notifications',
+        label: 'Notifications',
+        Icon: BellSimpleIcon,
+        // Superset's Alerts & Reports; only present in the backend menu when
+        // the ALERT_REPORTS feature flag is enabled, so RBAC-by-URL hides it
+        // otherwise.
+        requiresUrl: '/alert/list/',
       },
       {
         id: 'action-log',

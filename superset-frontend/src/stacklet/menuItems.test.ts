@@ -48,6 +48,7 @@ const ALL_URLS = [
   '/chart/list/',
   '/tablemodelview/list/',
   '/databaseview/list/',
+  '/alert/list/',
   '/actionlog/list/',
   '/csstemplatemodelview/list/',
   '/annotationlayer/list/',
@@ -79,6 +80,7 @@ test('renders the full curated structure when all views are granted', () => {
   ]);
   expect(items[4].children?.map(child => child.id)).toEqual([
     'settings-database-connections',
+    'settings-notifications',
     'settings-action-log',
     'settings-css-templates',
     'settings-annotation-layers',

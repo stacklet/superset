@@ -27,6 +27,7 @@ export const Button = () => null;
 
 // @stacklet/ui/icons (see src/stacklet/menuItems.ts)
 const MockIcon = () => null;
+export const BellSimpleIcon = MockIcon;
 export const CardsIcon = MockIcon;
 export const ChartLineIcon = MockIcon;
 export const ClockCounterClockwiseIcon = MockIcon;
