@@ -63,7 +63,9 @@ export default function ThemeModeControl() {
 
   return (
     <div className="flex flex-col gap-y-1" role="group" aria-label={t('Theme')}>
-      <span className="px-xl text-label-small text-text-secondary">
+      {/* px-md matches the user-menu buttons' content inset so the label
+          lines up with the User info icon above it. */}
+      <span className="px-md text-label-extra-small-strong text-text-secondary">
         {t('Theme')}
       </span>
       <div className="flex justify-center gap-x-3">

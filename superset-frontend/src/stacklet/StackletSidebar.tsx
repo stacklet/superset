@@ -25,9 +25,9 @@ import {
   type ReactNode,
 } from 'react';
 import { UNSAFE_PortalProvider as PortalProvider } from 'react-aria';
-import { Icons } from '@superset-ui/core/components';
 import { t } from '@apache-superset/core/translation';
 import { ThemeMode } from '@apache-superset/core/theme';
+import { UserCircleIcon } from '@stacklet/ui/icons';
 import { Sidebar } from '@stacklet/ui/v2/Sidebar';
 import { Button } from '@stacklet/ui/v2/Button';
 import { UserMenu as StackletUserMenu } from '@stacklet/ui/v2/UserMenu';
@@ -181,7 +181,7 @@ function useCurrentUserMenu(
         onPress={() => window.location.assign(navbarRight.user_info_url)}
         variant="tertiary"
       >
-        <Icons.InfoCircleOutlined className="size-md" /> {t('User info')}
+        <UserCircleIcon className="size-md" /> {t('User info')}
       </Button>
       {themeControl}
       {navbarRight.version_string ? (

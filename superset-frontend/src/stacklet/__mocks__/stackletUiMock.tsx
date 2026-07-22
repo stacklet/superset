@@ -40,3 +40,4 @@ export const PresentationChartIcon = MockIcon;
 export const ScrollIcon = MockIcon;
 export const StarIcon = MockIcon;
 export const TagChevronIcon = MockIcon;
+export const UserCircleIcon = MockIcon;
