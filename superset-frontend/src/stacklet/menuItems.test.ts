@@ -189,6 +189,15 @@ test('active resolution: hand-tuned filters fall back to the unfiltered entry', 
   ).toBe('~stacklet-active:charts-all');
 });
 
+test('active resolution: Notifications stays active across Alerts and Reports', () => {
+  expect(tokenOf('/alert/list/')).toBe(
+    '~stacklet-active:settings-notifications',
+  );
+  expect(tokenOf('/report/list/')).toBe(
+    '~stacklet-active:settings-notifications',
+  );
+});
+
 test('active resolution: unrelated locations highlight nothing', () => {
   expect(tokenOf('/superset/welcome/')).toBe('~stacklet-active:none');
 });

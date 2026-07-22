@@ -74,6 +74,12 @@ interface SidebarLeafSpec {
   requiresUrl: string;
   /** Optional target override, e.g. a pre-filtered list view. */
   target?: (userId?: number) => string | undefined;
+  /**
+   * Extra base URLs (besides the target) that also keep this entry
+   * highlighted — e.g. sibling tabs of the same view, so switching between
+   * them doesn't drop the active state.
+   */
+  activePaths?: string[];
 }
 
 interface SidebarSectionSpec {
@@ -202,8 +208,10 @@ const SECTIONS: SidebarSectionSpec[] = [
         Icon: BellSimpleIcon,
         // Superset's Alerts & Reports; only present in the backend menu when
         // the ALERT_REPORTS feature flag is enabled, so RBAC-by-URL hides it
-        // otherwise.
+        // otherwise. Alerts (/alert/list/) and Reports (/report/list/) are two
+        // tabs of the same view — stay highlighted across both.
         requiresUrl: '/alert/list/',
+        activePaths: ['/report/list/'],
       },
       {
         id: 'action-log',
@@ -258,6 +266,10 @@ const getFiltersParam = (search: string) =>
  * path-prefix match (e.g. SQL Lab for /sqllab/ subpages). When the location
  * carries filters that no preset matches — say the user tweaked the list
  * filters by hand — the unfiltered entry for that view wins.
+ *
+ * Each item is matched against its `target` and any extra `activePaths` (real
+ * URLs, not the virtual token), so an entry can span sibling views — e.g.
+ * Notifications stays active across both Alerts and Reports.
  */
 export function resolveActiveNavToken(
   items: NavItem[],
@@ -273,30 +285,40 @@ export function resolveActiveNavToken(
   items
     .flatMap(section => section.children ?? [section])
     .forEach(item => {
-      if (!item.target) return;
-      const [rawPath, rawQuery = ''] = item.target.split('?');
-      const targetPath = normalizePath(rawPath);
-      const targetFilters = getFiltersParam(rawQuery);
+      // The item's own target, plus any extra real match URLs carried in
+      // activePaths (the leading virtual token is skipped).
+      const matchUrls = [
+        ...(item.target ? [item.target] : []),
+        ...(item.activePaths ?? []).filter(
+          path => !path.startsWith(ACTIVE_TOKEN_PREFIX),
+        ),
+      ];
 
-      let rank = 0;
-      if (pathname === targetPath) {
-        if (targetFilters) {
-          rank = targetFilters === currentFilters ? 3 : 0;
-        } else {
-          rank = currentFilters ? 1 : 2;
+      matchUrls.forEach(matchUrl => {
+        const [rawPath, rawQuery = ''] = matchUrl.split('?');
+        const targetPath = normalizePath(rawPath);
+        const targetFilters = getFiltersParam(rawQuery);
+
+        let rank = 0;
+        if (pathname === targetPath) {
+          if (targetFilters) {
+            rank = targetFilters === currentFilters ? 3 : 0;
+          } else {
+            rank = currentFilters ? 1 : 2;
+          }
+        } else if (!targetFilters && pathname.startsWith(`${targetPath}/`)) {
+          rank = 1;
         }
-      } else if (!targetFilters && pathname.startsWith(`${targetPath}/`)) {
-        rank = 1;
-      }
 
-      if (
-        rank > bestRank ||
-        (rank === bestRank && rank > 0 && targetPath.length > bestPathLength)
-      ) {
-        bestToken = activeNavToken(item.id);
-        bestRank = rank;
-        bestPathLength = targetPath.length;
-      }
+        if (
+          rank > bestRank ||
+          (rank === bestRank && rank > 0 && targetPath.length > bestPathLength)
+        ) {
+          bestToken = activeNavToken(item.id);
+          bestRank = rank;
+          bestPathLength = targetPath.length;
+        }
+      });
     });
 
   return bestToken ?? NO_ACTIVE_TOKEN;
@@ -337,7 +359,10 @@ export function buildNavItems(data: MenuData, user?: BootstrapUser): NavItem[] {
         id,
         target,
         Icon: item.Icon,
-        activePaths: [activeNavToken(id)],
+        // The virtual token drives the component's own highlighting; the extra
+        // spec paths ride along for resolveActiveNavToken (they never match a
+        // virtual-token pathname, so they don't affect the component).
+        activePaths: [activeNavToken(id), ...(item.activePaths ?? [])],
       });
     });
     if (children.length > 0) {
