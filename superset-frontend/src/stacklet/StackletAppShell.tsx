@@ -28,6 +28,8 @@ import type { MenuData } from 'src/types/bootstrapTypes';
 import StackletSidebar, {
   isAnonymousUser,
   useSidebarCollapsed,
+  SIDEBAR_COLLAPSED_WIDTH,
+  SIDEBAR_WIDTH,
 } from './StackletSidebar';
 import ThemeModeControl from './ThemeModeControl';
 
@@ -55,6 +57,7 @@ export default function StackletAppShell({
   const location = useLocation();
   const { themeMode } = useThemeContext();
   const [collapsed, toggleCollapsed] = useSidebarCollapsed();
+  const sidebarWidth = collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH;
 
   const navigate = useCallback(
     (url: string) => {
@@ -91,12 +94,17 @@ export default function StackletAppShell({
         width: 100%;
       `}
     >
+      {/* Fixed (not sticky): the sidebar's scroll ancestors are all clamped to
+          the viewport height while page content overflows onto the window, so
+          a sticky element would scroll away with the content. Fixed pins it to
+          the viewport; the content column reserves its width via margin. */}
       <div
         css={css`
-          position: sticky;
+          position: fixed;
           top: 0;
+          left: 0;
           height: 100vh;
-          flex: 0 0 auto;
+          width: ${sidebarWidth};
           z-index: 100;
         `}
       >
@@ -115,6 +123,7 @@ export default function StackletAppShell({
         css={css`
           flex: 1 1 auto;
           min-width: 0;
+          margin-left: ${sidebarWidth};
           display: flex;
           flex-direction: column;
         `}
