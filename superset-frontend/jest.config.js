@@ -22,6 +22,10 @@ module.exports = {
   testRegex:
     '\\/superset-frontend\\/(spec|src|plugins|packages|tools)\\/.*(_spec|\\.test)\\.[jt]sx?$',
   moduleNameMapper: {
+    // the prebuilt @stacklet/ui package and font packages are ESM/CSS-only
+    '^@stacklet/ui(/.*)?$':
+      '<rootDir>/src/stacklet/__mocks__/stackletUiMock.tsx',
+    '^@fontsource.*$': '<rootDir>/spec/__mocks__/mockExportObject.js',
     '\\.(css|less|geojson)$': '<rootDir>/spec/__mocks__/mockExportObject.js',
     '\\.(gif|ttf|eot|png|jpg)$': '<rootDir>/spec/__mocks__/mockExportString.js',
     '\\.svg$': '<rootDir>/spec/__mocks__/svgrMock.tsx',

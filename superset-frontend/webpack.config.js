@@ -452,6 +452,13 @@ const config = {
     ],
     alias: {
       '@storybook-shared': path.resolve(APP_DIR, '.storybook/shared'),
+      // @stacklet/ui is compiled with the React Compiler targeting React 19;
+      // on React 17 its `react/compiler-runtime` imports must resolve to the
+      // official polyfill package instead.
+      'react/compiler-runtime': path.resolve(
+        APP_DIR,
+        './node_modules/react-compiler-runtime',
+      ),
       react: path.resolve(path.join(APP_DIR, './node_modules/react')),
       // TODO: remove Handlebars alias once Handlebars NPM package has been updated to
       // correctly support webpack import (https://github.com/handlebars-lang/handlebars.js/issues/953)
