@@ -184,9 +184,16 @@ function useCurrentUserMenu(
         <UserCircleIcon className="size-md" /> {t('User info')}
       </Button>
       {themeControl}
-      {navbarRight.version_string ? (
+      {navbarRight.version_string || navbarRight.version_sha ? (
         <div className="text-label-small px-xl py-xs text-center text-text-secondary">
-          Superset {navbarRight.version_string}
+          {navbarRight.version_string ? (
+            <div>{t('Superset %s', navbarRight.version_string)}</div>
+          ) : null}
+          {navbarRight.version_sha ? (
+            <div>
+              {t('SHA')}: {navbarRight.version_sha}
+            </div>
+          ) : null}
         </div>
       ) : null}
     </UserMenu>
