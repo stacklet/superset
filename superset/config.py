@@ -149,9 +149,7 @@ VERSION_STRING = _try_json_readversion(VERSION_INFO_FILE) or _try_json_readversi
     PACKAGE_JSON_FILE
 )
 
-# Stacklet: keep the full 40-character SHA — images are tagged with the exact
-# fork commit SHA, so the untruncated value identifies the running image.
-VERSION_SHA_LENGTH = 40
+VERSION_SHA_LENGTH = 8
 VERSION_SHA = _try_json_readsha(VERSION_INFO_FILE, VERSION_SHA_LENGTH)
 
 # Build number is shown in the About section if available. This

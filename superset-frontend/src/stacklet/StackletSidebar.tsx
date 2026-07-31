@@ -190,11 +190,7 @@ function useCurrentUserMenu(
             <div>{t('Superset %s', navbarRight.version_string)}</div>
           ) : null}
           {navbarRight.version_sha ? (
-            // The full commit SHA doubles as the image tag, so it identifies
-            // the exact running image. It is longer than the menu, hence the
-            // inline word-break (the scoped stylesheet ships only the
-            // utilities the design system itself uses).
-            <div style={{ wordBreak: 'break-all' }}>
+            <div>
               {t('SHA')}: {navbarRight.version_sha}
             </div>
           ) : null}
