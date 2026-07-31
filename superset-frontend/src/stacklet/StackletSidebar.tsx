@@ -184,9 +184,20 @@ function useCurrentUserMenu(
         <UserCircleIcon className="size-md" /> {t('User info')}
       </Button>
       {themeControl}
-      {navbarRight.version_string ? (
+      {navbarRight.version_string || navbarRight.version_sha ? (
         <div className="text-label-small px-xl py-xs text-center text-text-secondary">
-          Superset {navbarRight.version_string}
+          {navbarRight.version_string ? (
+            <div>{t('Superset %s', navbarRight.version_string)}</div>
+          ) : null}
+          {navbarRight.version_sha ? (
+            // The full commit SHA doubles as the image tag, so it identifies
+            // the exact running image. It is longer than the menu, hence the
+            // inline word-break (the scoped stylesheet ships only the
+            // utilities the design system itself uses).
+            <div style={{ wordBreak: 'break-all' }}>
+              {t('SHA')}: {navbarRight.version_sha}
+            </div>
+          ) : null}
         </div>
       ) : null}
     </UserMenu>

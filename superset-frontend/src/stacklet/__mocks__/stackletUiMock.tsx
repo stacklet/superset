@@ -17,13 +17,22 @@
  * under the License.
  */
 
+import type { ReactNode } from 'react';
+
 // Jest stand-in for the prebuilt (ESM-only) @stacklet/ui package, mapped via
 // moduleNameMapper in jest.config.js. Only the exports consumed by
-// src/stacklet need to exist here.
-export const Sidebar = () => null;
-export const UserMenu = () => null;
+// src/stacklet need to exist here; the user-menu chain renders its content
+// so tests can assert on it.
+export const Sidebar = ({ SignInMenu }: { SignInMenu?: ReactNode }) => (
+  <>{SignInMenu}</>
+);
+export const UserMenu = ({ children }: { children?: ReactNode }) => (
+  <>{children}</>
+);
 export const AppSelector = () => null;
-export const Button = () => null;
+export const Button = ({ children }: { children?: ReactNode }) => (
+  <button type="button">{children}</button>
+);
 
 // @stacklet/ui/icons (see src/stacklet/menuItems.ts)
 const MockIcon = () => null;

@@ -38,3 +38,7 @@ skipped when an image already exists for that SHA.
 Each image also carries OCI labels: `org.opencontainers.image.source`,
 `org.opencontainers.image.revision`, `io.stacklet.superset.upstream_version`,
 and `io.stacklet.superset.stacklet_ref`.
+
+The full commit SHA baked into the image is shown in the sidebar's user menu
+(under the Superset version), so the exact running image can be identified
+from the UI.
