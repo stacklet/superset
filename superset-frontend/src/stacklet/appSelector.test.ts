@@ -31,6 +31,7 @@ test('builds entries from the platform-injected stacklet.urls', () => {
     stacklet: {
       urls: {
         console: 'https://console.acme.stacklet.io',
+        redash: 'https://redash.acme.stacklet.io',
         sinistral: 'https://sinistral.acme.stacklet.io',
         superset: 'https://superset.acme.stacklet.io',
       },
@@ -38,6 +39,11 @@ test('builds entries from the platform-injected stacklet.urls', () => {
   });
   expect(getAppSelectorOptions()).toEqual([
     { label: SUPERSET_APP_NAME, href: '', isBeta: false },
+    {
+      label: 'AssetDB',
+      href: 'https://redash.acme.stacklet.io',
+      isBeta: false,
+    },
     {
       label: 'Console',
       href: 'https://console.acme.stacklet.io',
@@ -61,6 +67,11 @@ test('falls back to the dev platform when the payload has no stacklet.urls', () 
   bootstrapWith({});
   expect(getAppSelectorOptions()).toEqual([
     { label: SUPERSET_APP_NAME, href: '', isBeta: false },
+    {
+      label: 'AssetDB',
+      href: 'https://redash.dev.stacklet.dev',
+      isBeta: false,
+    },
     {
       label: 'Console',
       href: 'https://console.dev.stacklet.dev',

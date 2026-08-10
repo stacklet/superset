@@ -52,19 +52,24 @@ interface StackletBootstrapExtras {
  */
 const DEV_FALLBACK_URLS: Partial<Record<string, string>> = {
   console: 'https://console.dev.stacklet.dev',
+  redash: 'https://redash.dev.stacklet.dev',
   sinistral: 'https://sinistral.dev.stacklet.dev',
 };
 
 /**
  * Builds the app switcher entries for the Stacklet sidebar. Superset itself
- * (branded AssetDB v2) is always present and selected; siblings appear only
- * when their URL is configured.
+ * (branded AssetDB v2) is always present and selected; siblings — including the
+ * Redash-backed "AssetDB" — appear only when their URL is configured. The
+ * Sidebar renders the selected app first regardless of this order.
  */
 export function getAppSelectorOptions(): StackletAppOption[] {
   const common = getBootstrapData().common as StackletBootstrapExtras;
   const urls = common?.stacklet?.urls ?? DEV_FALLBACK_URLS;
   return [
     { label: SUPERSET_APP_NAME, href: '', isBeta: false },
+    ...(urls.redash
+      ? [{ label: 'AssetDB', href: urls.redash, isBeta: false }]
+      : []),
     ...(urls.console
       ? [{ label: 'Console', href: urls.console, isBeta: false }]
       : []),
