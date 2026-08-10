@@ -20,10 +20,12 @@ import getBootstrapData from 'src/utils/getBootstrapData';
 
 /**
  * How this Superset deployment is branded in the Stacklet platform's app
- * switcher (Design Kit v2, node 6820-6796). Also part of @stacklet/ui's
- * `V2AppName` union, so it can be passed to the Sidebar without casts.
+ * switcher (Design Kit v2, node 6820-6796). Distinct from the Redash-backed
+ * "AssetDB", which the other apps still link to alongside this one. Also part
+ * of @stacklet/ui's `V2AppName` union, so it can be passed to the Sidebar
+ * without casts.
  */
-export const SUPERSET_APP_NAME = 'AssetDB';
+export const SUPERSET_APP_NAME = 'AssetDB v2';
 
 export interface StackletAppOption {
   label: string;
@@ -55,7 +57,7 @@ const DEV_FALLBACK_URLS: Partial<Record<string, string>> = {
 
 /**
  * Builds the app switcher entries for the Stacklet sidebar. Superset itself
- * (branded AssetDB) is always present and selected; siblings appear only
+ * (branded AssetDB v2) is always present and selected; siblings appear only
  * when their URL is configured.
  */
 export function getAppSelectorOptions(): StackletAppOption[] {
