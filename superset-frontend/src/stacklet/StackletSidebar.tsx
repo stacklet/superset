@@ -42,6 +42,10 @@ import { buildNavItems, resolveActiveNavToken } from './menuItems';
 // (Tailwind preflight + global html/body rules).
 import '@stacklet/ui/dist/ui.scoped.css';
 
+// Superset-local layout/type tweaks so "AssetDB (Preview)" fits the sidebar;
+// must come after the scoped stylesheet to win the cascade.
+import './stackletSidebarOverrides.css';
+
 /** Matches the sidebar widths baked into the V2Sidebar component. */
 export const SIDEBAR_WIDTH = '13.625rem';
 export const SIDEBAR_COLLAPSED_WIDTH = '4.5rem';
