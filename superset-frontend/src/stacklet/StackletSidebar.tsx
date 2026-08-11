@@ -271,8 +271,16 @@ export default function StackletSidebar({
     [navItems, pathname, search],
   );
 
+  // TEMPORARY — remove together with stackletSidebarOverrides.css once the
+  // Redash-backed AssetDB is retired: only the longer "AssetDB (Preview)"
+  // branding needs the sizing overrides that class scopes.
+  const scopeClassName =
+    supersetAppName === 'AssetDB (Preview)'
+      ? 'stacklet-ui-scope stacklet-preview-branding'
+      : 'stacklet-ui-scope';
+
   return (
-    <div className="stacklet-ui-scope" data-theme={scopeTheme} ref={scopeRef}>
+    <div className={scopeClassName} data-theme={scopeTheme} ref={scopeRef}>
       <PortalProvider getContainer={getPortalContainer}>
         <Sidebar
           appSelectorOptions={appSelectorOptions}
