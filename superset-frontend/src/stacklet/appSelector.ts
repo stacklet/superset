@@ -18,15 +18,6 @@
  */
 import getBootstrapData from 'src/utils/getBootstrapData';
 
-/**
- * How this Superset deployment is branded in the Stacklet platform's app
- * switcher (Design Kit v2, node 6820-6796). Distinct from the Redash-backed
- * "AssetDB", which the other apps still link to alongside this one. Also part
- * of @stacklet/ui's `V2AppName` union, so it can be passed to the Sidebar
- * without casts.
- */
-export const SUPERSET_APP_NAME = 'AssetDB v2';
-
 export interface StackletAppOption {
   label: string;
   href: string;
@@ -56,17 +47,33 @@ const DEV_FALLBACK_URLS: Partial<Record<string, string>> = {
   sinistral: 'https://sinistral.dev.stacklet.dev',
 };
 
+function getStackletUrls(): Partial<Record<string, string>> {
+  const common = getBootstrapData().common as StackletBootstrapExtras;
+  return common?.stacklet?.urls ?? DEV_FALLBACK_URLS;
+}
+
+/**
+ * How this Superset deployment is branded in the Stacklet platform's app
+ * switcher (Design Kit v2, node 6820-6796). Plain "AssetDB" once it is the
+ * only AssetDB in the environment; "(Preview)" while the Redash-backed
+ * AssetDB is still deployed alongside it. Both names are part of
+ * @stacklet/ui's `V2AppName` union, so the result can be passed to the
+ * Sidebar without casts.
+ */
+export function getSupersetAppName(): 'AssetDB' | 'AssetDB (Preview)' {
+  return getStackletUrls().redash ? 'AssetDB (Preview)' : 'AssetDB';
+}
+
 /**
  * Builds the app switcher entries for the Stacklet sidebar. Superset itself
- * (branded AssetDB v2) is always present and selected; siblings — including the
- * Redash-backed "AssetDB" — appear only when their URL is configured. The
- * Sidebar renders the selected app first regardless of this order.
+ * is always present and selected; siblings — including the Redash-backed
+ * "AssetDB" — appear only when their URL is configured. The Sidebar renders
+ * the selected app first regardless of this order.
  */
 export function getAppSelectorOptions(): StackletAppOption[] {
-  const common = getBootstrapData().common as StackletBootstrapExtras;
-  const urls = common?.stacklet?.urls ?? DEV_FALLBACK_URLS;
+  const urls = getStackletUrls();
   return [
-    { label: SUPERSET_APP_NAME, href: '', isBeta: false },
+    { label: getSupersetAppName(), href: '', isBeta: false },
     ...(urls.redash
       ? [{ label: 'AssetDB', href: urls.redash, isBeta: false }]
       : []),

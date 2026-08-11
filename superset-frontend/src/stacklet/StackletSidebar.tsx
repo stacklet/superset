@@ -35,7 +35,7 @@ import '@fontsource-variable/dm-sans';
 
 import getBootstrapData from 'src/utils/getBootstrapData';
 import type { MenuData } from 'src/types/bootstrapTypes';
-import { getAppSelectorOptions, SUPERSET_APP_NAME } from './appSelector';
+import { getAppSelectorOptions, getSupersetAppName } from './appSelector';
 import { buildNavItems, resolveActiveNavToken } from './menuItems';
 // The design system's stylesheet with every rule pre-scoped under
 // `.stacklet-ui-scope` — the raw dist/ui.css would restyle all of Superset
@@ -258,6 +258,7 @@ export default function StackletSidebar({
     [data, user],
   );
   const appSelectorOptions = useMemo(() => getAppSelectorOptions(), []);
+  const supersetAppName = useMemo(() => getSupersetAppName(), []);
   const signInMenu = useCurrentUserMenu(data, collapsed, themeControl);
   // See resolveActiveNavToken: a virtual token stands in for the pathname so
   // exactly one nav item is highlighted, query-aware for filtered presets.
@@ -276,7 +277,7 @@ export default function StackletSidebar({
           navItems={navItems}
           navigate={navigate}
           pathname={activeToken}
-          selectedApp={SUPERSET_APP_NAME}
+          selectedApp={supersetAppName}
           SignInMenu={signInMenu}
           variant="grouped"
         />
