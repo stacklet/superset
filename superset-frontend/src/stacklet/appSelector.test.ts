@@ -17,7 +17,7 @@
  * under the License.
  */
 import getBootstrapData from 'src/utils/getBootstrapData';
-import { getAppSelectorOptions, SUPERSET_APP_NAME } from './appSelector';
+import { getAppSelectorOptions, getSupersetAppName } from './appSelector';
 
 jest.mock('src/utils/getBootstrapData', () => jest.fn());
 
@@ -26,18 +26,25 @@ const mockedBootstrap = getBootstrapData as jest.Mock;
 const bootstrapWith = (common: object) =>
   mockedBootstrap.mockReturnValue({ common });
 
-test('builds entries from the platform-injected stacklet.urls', () => {
+test('brands itself "AssetDB (Preview)" while the Redash-backed AssetDB exists', () => {
   bootstrapWith({
     stacklet: {
       urls: {
         console: 'https://console.acme.stacklet.io',
+        redash: 'https://redash.acme.stacklet.io',
         sinistral: 'https://sinistral.acme.stacklet.io',
         superset: 'https://superset.acme.stacklet.io',
       },
     },
   });
+  expect(getSupersetAppName()).toBe('AssetDB (Preview)');
   expect(getAppSelectorOptions()).toEqual([
-    { label: SUPERSET_APP_NAME, href: '', isBeta: false },
+    { label: 'AssetDB (Preview)', href: '', isBeta: false },
+    {
+      label: 'AssetDB',
+      href: 'https://redash.acme.stacklet.io',
+      isBeta: false,
+    },
     {
       label: 'Console',
       href: 'https://console.acme.stacklet.io',
@@ -47,20 +54,36 @@ test('builds entries from the platform-injected stacklet.urls', () => {
   ]);
 });
 
-test('omits siblings whose URL is not configured', () => {
+test('brands itself plain "AssetDB" when Redash is not deployed', () => {
   bootstrapWith({
-    stacklet: { urls: { console: 'https://console.acme.stacklet.io' } },
+    stacklet: {
+      urls: {
+        console: 'https://console.acme.stacklet.io',
+        superset: 'https://superset.acme.stacklet.io',
+      },
+    },
   });
-  expect(getAppSelectorOptions().map(option => option.label)).toEqual([
-    SUPERSET_APP_NAME,
-    'Console',
+  expect(getSupersetAppName()).toBe('AssetDB');
+  expect(getAppSelectorOptions()).toEqual([
+    { label: 'AssetDB', href: '', isBeta: false },
+    {
+      label: 'Console',
+      href: 'https://console.acme.stacklet.io',
+      isBeta: false,
+    },
   ]);
 });
 
 test('falls back to the dev platform when the payload has no stacklet.urls', () => {
   bootstrapWith({});
+  // The dev fallback includes a Redash URL, so the Preview name applies
   expect(getAppSelectorOptions()).toEqual([
-    { label: SUPERSET_APP_NAME, href: '', isBeta: false },
+    { label: 'AssetDB (Preview)', href: '', isBeta: false },
+    {
+      label: 'AssetDB',
+      href: 'https://redash.dev.stacklet.dev',
+      isBeta: false,
+    },
     {
       label: 'Console',
       href: 'https://console.dev.stacklet.dev',

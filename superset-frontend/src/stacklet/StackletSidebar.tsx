@@ -35,12 +35,16 @@ import '@fontsource-variable/dm-sans';
 
 import getBootstrapData from 'src/utils/getBootstrapData';
 import type { MenuData } from 'src/types/bootstrapTypes';
-import { getAppSelectorOptions, SUPERSET_APP_NAME } from './appSelector';
+import { getAppSelectorOptions, getSupersetAppName } from './appSelector';
 import { buildNavItems, resolveActiveNavToken } from './menuItems';
 // The design system's stylesheet with every rule pre-scoped under
 // `.stacklet-ui-scope` — the raw dist/ui.css would restyle all of Superset
 // (Tailwind preflight + global html/body rules).
 import '@stacklet/ui/dist/ui.scoped.css';
+
+// Superset-local layout/type tweaks so "AssetDB (Preview)" fits the sidebar;
+// must come after the scoped stylesheet to win the cascade.
+import './stackletSidebarOverrides.css';
 
 /** Matches the sidebar widths baked into the V2Sidebar component. */
 export const SIDEBAR_WIDTH = '13.625rem';
@@ -258,6 +262,7 @@ export default function StackletSidebar({
     [data, user],
   );
   const appSelectorOptions = useMemo(() => getAppSelectorOptions(), []);
+  const supersetAppName = useMemo(() => getSupersetAppName(), []);
   const signInMenu = useCurrentUserMenu(data, collapsed, themeControl);
   // See resolveActiveNavToken: a virtual token stands in for the pathname so
   // exactly one nav item is highlighted, query-aware for filtered presets.
@@ -266,8 +271,16 @@ export default function StackletSidebar({
     [navItems, pathname, search],
   );
 
+  // TEMPORARY — remove together with stackletSidebarOverrides.css once the
+  // Redash-backed AssetDB is retired: only the longer "AssetDB (Preview)"
+  // branding needs the sizing overrides that class scopes.
+  const scopeClassName =
+    supersetAppName === 'AssetDB (Preview)'
+      ? 'stacklet-ui-scope stacklet-preview-branding'
+      : 'stacklet-ui-scope';
+
   return (
-    <div className="stacklet-ui-scope" data-theme={scopeTheme} ref={scopeRef}>
+    <div className={scopeClassName} data-theme={scopeTheme} ref={scopeRef}>
       <PortalProvider getContainer={getPortalContainer}>
         <Sidebar
           appSelectorOptions={appSelectorOptions}
@@ -276,7 +289,7 @@ export default function StackletSidebar({
           navItems={navItems}
           navigate={navigate}
           pathname={activeToken}
-          selectedApp={SUPERSET_APP_NAME}
+          selectedApp={supersetAppName}
           SignInMenu={signInMenu}
           variant="grouped"
         />

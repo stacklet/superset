@@ -1,0 +1,64 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+/*
+ * TEMPORARY — delete this file (and its import plus the
+ * `stacklet-preview-branding` class in StackletSidebar.tsx) once the
+ * Redash-backed AssetDB is retired: the app is then branded plain "AssetDB",
+ * which fits the sidebar with the component defaults.
+ *
+ * Superset-local tweaks on top of @stacklet/ui's scoped stylesheet (imported
+ * right before this file in StackletSidebar.tsx), so the longer
+ * "AssetDB (Preview)" pill fits the sidebar without touching the shared
+ * component. `stacklet-preview-branding` is stamped on the scope wrapper only
+ * while the Redash URL is configured — the only case that gets the long name.
+ * Selectors anchor on the trigger's aria-label rather than the dist's utility
+ * class names, which are minified build artifacts.
+ */
+
+/* Header row holding the logo and the app selector: tighter padding and gap
+   than the component defaults, freeing width for the longer name. */
+.stacklet-ui-scope.stacklet-preview-branding
+  div:has(> div > button[aria-label^='App selector']) {
+  padding: 16px;
+  column-gap: 6px;
+}
+
+/* Slightly smaller logo, matching the reduced type next to it. */
+.stacklet-ui-scope.stacklet-preview-branding
+  div:has(> div > button[aria-label^='App selector'])
+  > a
+  > svg {
+  width: 24px;
+  height: auto;
+}
+
+/* The trigger lays out label and tile icon on the text baseline; with the
+   smaller type below the icon rides too high, so center-align instead. */
+.stacklet-ui-scope.stacklet-preview-branding
+  button[aria-label^='App selector'] {
+  align-items: center;
+}
+
+/* Smaller label type so the full name fits the expanded sidebar width. */
+.stacklet-ui-scope.stacklet-preview-branding
+  button[aria-label^='App selector']
+  .whitespace-nowrap {
+  font-size: 12px;
+}
