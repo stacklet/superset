@@ -18,7 +18,7 @@
 ######################################################################
 # Node stage to deal with static asset construction
 ######################################################################
-ARG PY_VER=3.11.14-slim-trixie
+ARG PY_VER=3.11.17-slim-trixie
 
 # If BUILDPLATFORM is null, set it to 'amd64' (or leave as is otherwise).
 ARG BUILDPLATFORM=${BUILDPLATFORM:-amd64}
@@ -306,20 +306,45 @@ CMD ["/app/docker/entrypoints/docker-ci.sh"]
 FROM lean AS stacklet
 USER root
 
-ARG SUPERSET_VERSION=""
-ARG SUPERSET_GIT_SHA=""
-
 COPY requirements/stacklet.txt requirements/
 
 RUN --mount=type=cache,target=${SUPERSET_HOME}/.cache/uv \
     /app/docker/pip-install.sh -r requirements/stacklet.txt
+# Screenshots launch Chromium headless, which only needs the headless shell.
 RUN . /app/.venv/bin/activate && \
-    playwright install-deps && \
-    playwright install chromium
+    playwright install-deps chromium && \
+    playwright install --only-shell chromium
+
+# Declared here so a new version or SHA only invalidates the layers below.
+ARG SUPERSET_VERSION=""
+ARG SUPERSET_GIT_SHA=""
 
 RUN if [ -n "${SUPERSET_VERSION}" ]; then \
       printf '{"version":"%s","GIT_SHA":"%s"}' \
         "${SUPERSET_VERSION}" "${SUPERSET_GIT_SHA}" \
         > superset/static/version_info.json; \
     fi
+
+# Remove build-only packages. The venv's native extensions link only libc,
+# libgcc, libstdc++ and zlib (psycopg2-binary bundles its client libraries),
+# and the system Python's uv, wheel and setuptools are only used at build time.
+# apt-get upgrade picks up Debian updates newer than the base image. This layer
+# follows the SUPERSET_* ARGs, so it reruns on every build.
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update && \
+    apt-get remove -y --purge \
+      libc6-dev \
+      libcrypt-dev \
+      libecpg-dev \
+      libldap-dev \
+      libldap2-dev \
+      libpq-dev \
+      libsasl2-dev \
+      libssl-dev \
+      linux-libc-dev && \
+    apt-get upgrade -y && \
+    apt-get autoremove -y --purge && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    /usr/local/bin/python -m pip uninstall -y uv wheel setuptools
 USER superset
