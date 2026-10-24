@@ -18,7 +18,7 @@ annotated-types==0.7.0
     # via
     #   -c requirements/base-constraint.txt
     #   pydantic
-anyio==4.14.1
+anyio==4.14.2
     # via
     #   httpx
     #   mcp
@@ -82,7 +82,7 @@ bottleneck==1.5.0
     # via
     #   -c requirements/base-constraint.txt
     #   apache-superset
-brotli==1.2.0
+brotli==1.2.1
     # via
     #   -c requirements/base-constraint.txt
     #   flask-compress
@@ -107,7 +107,7 @@ celery==5.5.2
     #   -c requirements/base-constraint.txt
     #   apache-superset
     #   sentry-sdk
-certifi==2025.6.15
+certifi==2026.10.19
     # via
     #   -c requirements/base-constraint.txt
     #   httpcore
@@ -404,7 +404,7 @@ limits==5.1.0
     # via
     #   -c requirements/base-constraint.txt
     #   flask-limiter
-mako==1.3.10
+mako==1.4.3
     # via
     #   -c requirements/base-constraint.txt
     #   alembic
@@ -555,7 +555,7 @@ pyarrow==16.1.0
     # via
     #   -c requirements/base-constraint.txt
     #   apache-superset
-pyasn1==0.6.2
+pyasn1==0.6.4
     # via
     #   -c requirements/base-constraint.txt
     #   pyasn1-modules
@@ -596,7 +596,7 @@ pygments==2.19.1
     #   -c requirements/base-constraint.txt
     #   rich
     #   rich-rst
-pyjwt==2.10.1
+pyjwt==2.15.1
     # via
     #   -c requirements/base-constraint.txt
     #   apache-superset
@@ -608,7 +608,7 @@ pynacl==1.6.2
     # via
     #   -c requirements/base-constraint.txt
     #   paramiko
-pyopenssl==25.3.0
+pyopenssl==26.2.0
     # via
     #   -c requirements/base-constraint.txt
     #   shillelagh
@@ -670,7 +670,7 @@ referencing==0.36.2
     #   jsonschema
     #   jsonschema-path
     #   jsonschema-specifications
-requests==2.32.4
+requests==2.33.0
     # via
     #   -c requirements/base-constraint.txt
     #   requests-cache
@@ -820,7 +820,7 @@ url-normalize==2.2.1
     # via
     #   -c requirements/base-constraint.txt
     #   requests-cache
-urllib3==2.6.3
+urllib3==2.8.0
     # via
     #   -c requirements/base-constraint.txt
     #   botocore
@@ -854,7 +854,7 @@ websocket-client==1.8.0
     #   selenium
 websockets==16.0
     # via fastmcp-slim
-werkzeug==3.1.6
+werkzeug==3.1.9
     # via
     #   -c requirements/base-constraint.txt
     #   flask
