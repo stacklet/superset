@@ -244,3 +244,31 @@ def test_empty_column_names_do_not_rename_explicit_synthetic_names() -> None:
     df = result_set.to_pandas_df()
     assert list(df.columns) == ["_col_1", "_col_0"]
     assert df.iloc[0].tolist() == [10, 20]
+
+
+def test_uuid_column_is_stringified() -> None:
+    """
+    UUID columns must render as readable strings, not raw bytes.
+
+    PyArrow >= 21 infers Python ``uuid.UUID`` values as the canonical ``uuid``
+    extension type (16-byte binary) instead of raising while building the array.
+    That bypasses the stringification fallback, so without explicit handling the
+    values surface in the results grid as garbled bytes / ``[bytes]``.
+    ``SupersetResultSet`` must stringify any Arrow extension type.
+
+    Regression test for the pyarrow 20 -> 24 upgrade.
+    """
+    import uuid
+
+    ids = [
+        uuid.UUID("f4787a4f-2541-4f8a-9b5e-1e2d3c4b5a6f"),
+        uuid.UUID("00000000-0000-0000-0000-000000000000"),
+    ]
+    data = [(ids[0],), (ids[1],)]
+    description = [("uuid", "uuid", None, None, None, None, True)]
+    result_set = SupersetResultSet(data, description, BaseEngineSpec)  # type: ignore
+
+    df = result_set.to_pandas_df()
+    assert df["uuid"].tolist() == [str(i) for i in ids]
+    # values are readable UUID strings, not raw bytes
+    assert all(value is None or isinstance(value, str) for value in df["uuid"].tolist())
