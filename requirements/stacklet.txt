@@ -165,7 +165,7 @@ croniter==6.0.0
     # via
     #   -c requirements/base-constraint.txt
     #   apache-superset
-cryptography==46.0.5
+cryptography==50.0.2
     # via
     #   -c requirements/base-constraint.txt
     #   apache-superset
@@ -450,7 +450,7 @@ more-itertools==11.1.0
     # via
     #   jaraco-classes
     #   jaraco-functools
-msgpack==1.0.8
+msgpack==1.2.3
     # via
     #   -c requirements/base-constraint.txt
     #   apache-superset
@@ -468,7 +468,6 @@ numpy==1.26.4
     #   apache-superset
     #   bottleneck
     #   pandas
-    #   pyarrow
 odfpy==1.4.1
     # via
     #   -c requirements/base-constraint.txt
@@ -520,7 +519,7 @@ pgsanity==0.2.9
     # via
     #   -c requirements/base-constraint.txt
     #   apache-superset
-pillow==11.3.0
+pillow==13.0.0
     # via
     #   -c requirements/base-constraint.txt
     #   apache-superset
@@ -551,7 +550,7 @@ psycopg2-binary==2.9.9
     # via apache-superset
 py-key-value-aio==0.4.5
     # via fastmcp-slim
-pyarrow==16.1.0
+pyarrow==23.0.1
     # via
     #   -c requirements/base-constraint.txt
     #   apache-superset
@@ -608,7 +607,7 @@ pynacl==1.6.2
     # via
     #   -c requirements/base-constraint.txt
     #   paramiko
-pyopenssl==26.2.0
+pyopenssl==26.4.0
     # via
     #   -c requirements/base-constraint.txt
     #   shillelagh
