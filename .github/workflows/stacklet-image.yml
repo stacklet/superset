@@ -25,7 +25,16 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    env:
+      HARDEN_RUNNER: ${{ secrets.STEP_SECURITY_API_KEY != '' }}
     steps:
+      - name: Harden Runner
+        if: env.HARDEN_RUNNER == 'true'
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          use-policy-store: true
+          api-key: ${{ secrets.STEP_SECURITY_API_KEY }}
+
       - name: Resolve source ref
         id: src
         env:

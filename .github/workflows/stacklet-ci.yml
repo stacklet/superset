@@ -1,0 +1,186 @@
+name: Stacklet CI
+
+on:
+  schedule:
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  SLACK_CHANNEL: C01HE4GGZ7A
+
+jobs:
+  notify-start:
+    name: Notify Slack (start)
+    runs-on: ubuntu-24.04
+    environment: test
+    permissions: {}
+    env:
+      HARDEN_RUNNER: ${{ secrets.STEP_SECURITY_API_KEY != '' }}
+    outputs:
+      ts: ${{ steps.slack.outputs.ts }}
+    steps:
+      - name: Harden Runner
+        if: env.HARDEN_RUNNER == 'true'
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          use-policy-store: true
+          api-key: ${{ secrets.STEP_SECURITY_API_KEY }}
+
+      - name: Notify Slack starting
+        id: slack
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.CI_SLACK_TOKEN }}
+          payload: |
+            channel: "${{ env.SLACK_CHANNEL }}"
+            text: "Superset CI - RUNNING"
+            attachments:
+              - color: "#FFA500"
+                blocks:
+                  - type: "section"
+                    text:
+                      type: "mrkdwn"
+                      text: "⏳ *Superset* CI - *RUNNING* ⏳"
+                  - type: "divider"
+                  - type: "section"
+                    text:
+                      type: "mrkdwn"
+                      text: ${{ toJSON(github.ref_name == 'stacklet/integration' && 'Branch: stacklet/integration' || format('Branch: ⚠️  {0}', github.ref_name)) }}
+                  - type: "divider"
+                  - type: "section"
+                    text:
+                      type: "mrkdwn"
+                      text: "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Test Logs>"
+
+  python-unit:
+    name: Python unit tests
+    permissions:
+      contents: read
+    uses: stacklet/github-tooling/.github/workflows/run-script.yml@48cc95e34ca3ff105998f6b649ddee54bf6da4c2 # v1.1.0
+    secrets:
+      STEP_SECURITY_API_KEY: ${{ secrets.STEP_SECURITY_API_KEY }}
+    with:
+      mise-env: stacklet-ci
+      run: |
+        set -euo pipefail
+        sudo apt-get update && sudo apt-get -y install libldap2-dev libsasl2-dev
+        uv pip install --system -r requirements/development.txt -e .
+        export PYTHONPATH="$PWD" SUPERSET_TESTENV=true SUPERSET_SECRET_KEY=not-a-secret
+        pytest --durations-min=0.5 ./tests/common ./tests/unit_tests --cache-clear --maxfail=50
+        pytest --durations-min=0.5 --cov=superset/sql/ ./tests/unit_tests/sql/ --cache-clear --cov-fail-under=100
+
+  frontend:
+    name: Frontend tests and lint
+    runs-on: ubuntu-24.04
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      HARDEN_RUNNER: ${{ secrets.STEP_SECURITY_API_KEY != '' }}
+    defaults:
+      run:
+        working-directory: superset-frontend
+    steps:
+      - name: Harden Runner
+        if: env.HARDEN_RUNNER == 'true'
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          use-policy-store: true
+          api-key: ${{ secrets.STEP_SECURITY_API_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          node-version-file: superset-frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: superset-frontend/package-lock.json
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
+        with:
+          role-to-assume: ${{ vars.PUBLISH_ROLE_ARN }}
+          aws-region: us-east-1
+
+      # superset-frontend/.npmrc routes the @stacklet scope to CodeArtifact;
+      # the token goes in the user-level ~/.npmrc, which npm merges with it.
+      - name: Log in to CodeArtifact
+        run: |
+          token="$(aws codeartifact get-authorization-token \
+            --domain stacklet \
+            --domain-owner 653993915282 \
+            --region us-east-1 \
+            --query authorizationToken \
+            --output text)"
+          echo "::add-mask::$token"
+          echo "//stacklet-653993915282.d.codeartifact.us-east-1.amazonaws.com/npm/stacklet.client.ui/:_authToken=${token}" >> ~/.npmrc
+
+      # @stacklet/ui's preinstall hook invokes pnpm.
+      - name: Install pnpm
+        run: npm install -g pnpm@10.34.9
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Stacklet unit tests
+        run: npm run test -- src/stacklet
+
+      - name: Lint
+        run: npm run lint
+
+  notify-result:
+    name: Notify Slack (result)
+    if: always() && needs.notify-start.outputs.ts != ''
+    needs: [notify-start, python-unit, frontend]
+    runs-on: ubuntu-24.04
+    environment: test
+    permissions: {}
+    env:
+      HARDEN_RUNNER: ${{ secrets.STEP_SECURITY_API_KEY != '' }}
+    steps:
+      - name: Harden Runner
+        if: env.HARDEN_RUNNER == 'true'
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          use-policy-store: true
+          api-key: ${{ secrets.STEP_SECURITY_API_KEY }}
+
+      - name: Notify Slack result
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        env:
+          SUCCESS: ${{ needs.python-unit.result == 'success' && needs.frontend.result == 'success' }}
+        with:
+          method: chat.update
+          token: ${{ secrets.CI_SLACK_TOKEN }}
+          payload: |
+            channel: "${{ env.SLACK_CHANNEL }}"
+            ts: "${{ needs.notify-start.outputs.ts }}"
+            text: "Superset CI - ${{ env.SUCCESS == 'true' && 'SUCCEEDED' || 'FAILED' }}"
+            attachments:
+              - color: "${{ env.SUCCESS == 'true' && '#36a64f' || '#ff0000' }}"
+                blocks:
+                  - type: "section"
+                    text:
+                      type: "mrkdwn"
+                      text: "${{ env.SUCCESS == 'true' && '✅ *Superset* CI - *SUCCEEDED* ✅' || '❌ *Superset* CI - *FAILED* ❌' }}"
+                  - type: "divider"
+                  - type: "section"
+                    text:
+                      type: "mrkdwn"
+                      text: ${{ toJSON(github.ref_name == 'stacklet/integration' && 'Branch: stacklet/integration' || format('Branch: ⚠️  {0}', github.ref_name)) }}
+                  - type: "divider"
+                  - type: "section"
+                    text:
+                      type: "mrkdwn"
+                      text: "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Test Logs>"

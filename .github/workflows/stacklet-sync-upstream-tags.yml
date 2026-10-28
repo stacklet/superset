@@ -12,7 +12,18 @@ permissions: {}
 jobs:
   sync-tags:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      HARDEN_RUNNER: ${{ secrets.STEP_SECURITY_API_KEY != '' }}
     steps:
+      - name: Harden Runner
+        if: env.HARDEN_RUNNER == 'true'
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          use-policy-store: true
+          api-key: ${{ secrets.STEP_SECURITY_API_KEY }}
+
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:

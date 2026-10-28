@@ -9,6 +9,8 @@
 .eslintignore
 .flake8
 .nvmrc
+mise.toml
+mise.stacklet-ci.toml
 .prettierrc
 .rat-excludes
 .swcrc
