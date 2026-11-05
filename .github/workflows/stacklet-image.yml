@@ -85,17 +85,22 @@ jobs:
         id: exists
         env:
           SHA: ${{ steps.src.outputs.sha }}
+          REGISTRY: ${{ vars.ECR_REGISTRY }}
           REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           REGION: ${{ vars.AWS_REGION }}
         run: |
-          if aws ecr describe-images \
+          if err="$(aws ecr describe-images \
+              --registry-id "${REGISTRY%%.*}" \
               --repository-name "$REPOSITORY" \
               --image-ids imageTag="$SHA" \
-              --region "$REGION" >/dev/null 2>&1; then
+              --region "$REGION" 2>&1 >/dev/null)"; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "Image for ${SHA} already exists; skipping build and push."
-          else
+          elif [[ "$err" == *ImageNotFoundException* ]]; then
             echo "skip=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "$err"
+            exit 1
           fi
 
       # The frontend build resolves @stacklet/ui from Stacklet's private
