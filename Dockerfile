@@ -18,7 +18,7 @@
 ######################################################################
 # Node stage to deal with static asset construction
 ######################################################################
-ARG PY_VER=3.11.17-slim-trixie
+ARG PY_VER=3.11.18-slim-trixie@sha256:07d4824036af339fa1b6ef769cc99d9c10a141769538b52b3b597c84f7a7b535
 
 # If BUILDPLATFORM is null, set it to 'amd64' (or leave as is otherwise).
 ARG BUILDPLATFORM=${BUILDPLATFORM:-amd64}
