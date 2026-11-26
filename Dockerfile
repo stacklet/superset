@@ -311,7 +311,9 @@ COPY requirements/stacklet.txt requirements/
 RUN --mount=type=cache,target=${SUPERSET_HOME}/.cache/uv \
     /app/docker/pip-install.sh -r requirements/stacklet.txt
 # Screenshots launch Chromium headless, which only needs the headless shell.
-RUN . /app/.venv/bin/activate && \
+# Playwright's bundled Node links libatomic, which `install-deps` needs to run.
+RUN /app/docker/apt-install.sh libatomic1 && \
+    . /app/.venv/bin/activate && \
     playwright install-deps chromium && \
     playwright install --only-shell chromium
 
