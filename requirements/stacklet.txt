@@ -189,7 +189,7 @@ deprecation==2.1.0
     # via
     #   -c requirements/base-constraint.txt
     #   apache-superset
-dnspython==2.9.0
+dnspython==2.9.2
     # via
     #   -c requirements/base-constraint.txt
     #   email-validator
@@ -440,7 +440,7 @@ marshmallow-union==0.1.15
     # via
     #   -c requirements/base-constraint.txt
     #   apache-superset
-mcp==1.28.1
+mcp==1.30.0
     # via fastmcp-slim
 mdurl==0.1.2
     # via
@@ -528,7 +528,7 @@ platformdirs==4.3.8
     #   -c requirements/base-constraint.txt
     #   fastmcp-slim
     #   requests-cache
-playwright==1.64.1
+playwright==1.65.2
     # via -r requirements/stacklet.in
 ply==3.11
     # via
@@ -584,8 +584,6 @@ pydantic-settings==2.14.2
     # via
     #   fastmcp-slim
     #   mcp
-pyee==13.0.1
-    # via playwright
 pygeohash==3.2.2
     # via
     #   -c requirements/base-constraint.txt
@@ -795,7 +793,6 @@ typing-extensions==4.15.0
     #   py-key-value-aio
     #   pydantic
     #   pydantic-core
-    #   pyee
     #   pyopenssl
     #   referencing
     #   selenium
